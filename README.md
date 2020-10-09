@@ -1,5 +1,6 @@
 # PrometheusRock
 ![Python package](https://github.com/kozhushman/prometheusrock/workflows/Python%20package/badge.svg)
+
 Prometheus middleware for Starlette and FastAPI
 
 This middleware collects couple of basic metrics and allow you to add your own ones.
