@@ -1,5 +1,6 @@
 # PrometheusRock
 ![Python package](https://github.com/kozhushman/prometheusrock/workflows/Python%20package/badge.svg?branch=main)
+![CodeQL](https://github.com/kozhushman/prometheusrock/workflows/CodeQL/badge.svg?branch=main)
 
 Prometheus middleware for Starlette and FastAPI
 
