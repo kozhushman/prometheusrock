@@ -57,12 +57,15 @@ async def app_with_middleware():
 @pytest.fixture(scope="class")
 async def app_without_middleware(request):
     app_without_middleware = Starlette()
-    app_without_middleware.add_middleware(PrometheusMiddleware,
-                                          app_name=request.param['app_name'],
-                                          additional_headers=request.param['additional_headers'],
-                                          remove_labels=request.param['remove_labels'],
-                                          skip_paths=request.param['skip_paths']
-                                          )
+    app_without_middleware.add_middleware(
+        PrometheusMiddleware,
+        app_name=request.param['app_name'],
+        additional_headers=request.param['additional_headers'],
+        remove_labels=request.param['remove_labels'],
+        skip_paths=request.param['skip_paths'],
+        disable_default_counter=request.param.get('disable_default_counter', False),
+        disable_default_histogram=request.param.get('disable_default_histogram', False)
+    )
 
     await append_routes(app_without_middleware)
 

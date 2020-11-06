@@ -67,9 +67,14 @@ When you declare middleware, you can pass following args:
 you can pass `list` (that's important!) with names of that headers. They all cast to lowercase, so casing doesn't matters.
 * `remove_labels` - by default basic metrics labels are following: `method`, `path`, `status_code`, `headers`, `app_name`.
 If you don't wanna some of them - pass `list` with their names here. And their gone!
-* `skip_paths` - sometimes you don't wanna log some of the endpoint. (Fore example you don't wanna log accesses to `/metrics` in your metrics).
+* `skip_paths` - sometimes you don't wanna log some of the endpoint. 
+(Fore example you don't wanna log accesses to `/metrics` in your metrics).
 If you want to exclude this paths from metric - pass here `list` with their urls.
-By default this middleware ignores `/metrics` route, so if you initially moved your metric route to some other url - pass it here.
+By default this middleware ignores `/metrics` route, 
+so if you initially moved your metric route to some other url - pass it here.
+If you want to log all routes (even the default `/metrics` - pass an empty list!)
+* `disable_default_counter` - if you want to disable default Counter metric - pass `True` value to this optional param.
+* `disable_default_histogram` - if you want to disable default Histogram metric - pass `True` value to this optional param.
 
 
 But a picture is worth a thousand words, right? Let's see some code!
@@ -125,6 +130,10 @@ And the next steps are:
    So if you, for example, chose `Counter` metric, in your custom function you must do `middleware_proxy.metric.labels(**res).inc()`,
    or if you chose Histogram - `middleware_proxy.metric.labels(**res).observe(middleware_proxy.spent_time)` and so on,
    according to [this docs](https://github.com/prometheus/client_python).
+   Value that you're passing there - `res` (or however you called it) must be a sequence of the parameters, 
+   that you set as lables for your metric. For example, if your metric have labels `count` and `id`, `res` must be
+   a dictionary `{"count": count, "id": id}` or list with right positioning - `[count, id]`.
+   
 3. And finally we tell our middleware about our custom metric:
     ```python
     from prometheusrock import AddMetric, PrometheusMiddleware

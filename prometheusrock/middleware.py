@@ -14,19 +14,25 @@ from prometheusrock.singleton import SingletonMeta
 
 
 class MetricsStorage(metaclass=SingletonMeta):
-    def __init__(self, labels: List[str] = ["method", "path", "status_code", "headers", "app_name"]):
+    def __init__(self,
+                 labels: List[str] = ["method", "path", "status_code", "headers", "app_name"],
+                 disable_default_counter: bool = False,
+                 disable_default_histogram: bool = False
+                 ):
         self.labels = labels
-        self.REQUEST_COUNT = Counter(
-            "requests_total",
-            "Total HTTP requests",
-            labels,
-        )
+        if not disable_default_counter:
+            self.REQUEST_COUNT = Counter(
+                "requests_total",
+                "Total HTTP requests",
+                labels,
+            )
 
-        self.REQUEST_TIME = Histogram(
-            "request_processing_time",
-            "HTTP request processing time in seconds",
-            labels,
-        )
+        if not disable_default_histogram:
+            self.REQUEST_TIME = Histogram(
+                "request_processing_time",
+                "HTTP request processing time in seconds",
+                labels,
+            )
 
         self.custom_metrics = []
 
@@ -37,7 +43,10 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
                  app_name: str = "ASGIApp",
                  additional_headers: List[str] = [],
                  remove_labels: List[str] = [],
-                 skip_paths: List[str] = ['/metrics']):
+                 skip_paths: List[str] = ['/metrics'],
+                 disable_default_counter: bool = False,
+                 disable_default_histogram: bool = False
+                 ):
 
         """
         Configuration class for PrometheusPilgrimage middleware.
@@ -51,6 +60,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
             skip_paths (List[str]): if you dont want to log events on specific paths, pass them here. Default on '/metrics_route'
 
         """
+        print(disable_default_histogram)
         if not isinstance(additional_headers, list):
             raise TypeError("additional_headers must be list!")
         if not isinstance(remove_labels, list):
@@ -66,7 +76,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
         if len(labels) == 0:
             raise ValueError("Labels cant be empty!")
 
-        self.metrics = MetricsStorage(labels)
+        self.metrics = MetricsStorage(labels, disable_default_counter, disable_default_histogram)
 
         self.app_name = app_name
 
@@ -108,8 +118,13 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
                     item: labels.get(item) for item in labels.keys() if
                     item in self.metrics.labels
                 }
-                self.metrics.REQUEST_COUNT.labels(**final_labels).inc()
-                self.metrics.REQUEST_TIME.labels(**final_labels).observe(spent_time)
+
+                if hasattr(self.metrics, "REQUEST_COUNT"):
+                    self.metrics.REQUEST_COUNT.labels(**final_labels).inc()
+
+                if hasattr(self.metrics, "REQUEST_TIME"):
+                    self.metrics.REQUEST_TIME.labels(**final_labels).observe(spent_time)
+
                 for metric_key in self.metrics.custom_metrics:
                     metric_key.spent_time = spent_time
                     if inspect.iscoroutinefunction(metric_key.function):

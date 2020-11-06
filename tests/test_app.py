@@ -39,7 +39,8 @@ class TestMiddlewareSettings:
         "app_name": "custom_app_name",
         "additional_headers": ["content-type"],
         "remove_labels": ["method"],
-        "skip_paths": ["/400"]
+        "skip_paths": ["/400"],
+        "disable_default_histogram": True
     }], indirect=True)
     async def test_settings(self, app_without_middleware):
         async with TestClient(application=app_without_middleware) as client:
@@ -48,6 +49,28 @@ class TestMiddlewareSettings:
             assert "custom_app_name" in metrics
             assert "content-type" in metrics
             assert "method" not in metrics
+            assert "request_processing_time" not in metrics
+            assert "requests_total" in metrics
+
+            await client.get("/400")
+            metrics = (await client.get("/metrics_route")).content.decode()
+            assert "/400" not in metrics
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("app_without_middleware", [{
+        "app_name": "custom_app_name",
+        "additional_headers": ["content-type"],
+        "remove_labels": ["method"],
+        "skip_paths": ["/400"],
+        "disable_default_histogram": True,
+        "disable_default_counter": True
+    }], indirect=True)
+    async def test_disabled_default_metrics(self, app_without_middleware):
+        async with TestClient(application=app_without_middleware) as client:
+            await client.get("/200", headers={"content-type": "json"})
+            metrics = (await client.get("/metrics_route")).content.decode()
+            assert "request_processing_time" not in metrics
+            assert "requests_total" not in metrics
 
             await client.get("/400")
             metrics = (await client.get("/metrics_route")).content.decode()
@@ -84,3 +107,4 @@ class TestMiddlewareSettings:
                                                   **{
                                                       "skip_paths": "wrong_type"
                                                   })
+
