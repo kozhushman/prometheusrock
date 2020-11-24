@@ -60,7 +60,6 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
             skip_paths (List[str]): if you dont want to log events on specific paths, pass them here. Default on '/metrics_route'
 
         """
-        print(disable_default_histogram)
         if not isinstance(additional_headers, list):
             raise TypeError("additional_headers must be list!")
         if not isinstance(remove_labels, list):
