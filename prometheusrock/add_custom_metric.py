@@ -26,11 +26,16 @@ class Metric:
             metric_type (str): assigned metric type
             spent_time (float): amount of time that was spent on request
 
+
+        Attributes:
+            request (obj): request object
+
         """
         self.metric = metric
         self.function = function
         self.metric_type = metric_type
         self.spent_time = spent_time
+        self.request = None
 
 
 class AddMetric:

@@ -12,3 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Opportunity to disable default metrics
 - Updated README
+
+## [0.1.3] - 10.12.2020
+### Fixed
+- [Issue #3](https://github.com/kozhushman/prometheusrock/issues/3)
+### Added
+- Opportunity to get access to `request` object in custom function

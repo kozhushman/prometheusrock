@@ -126,6 +126,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
 
                 for metric_key in self.metrics.custom_metrics:
                     metric_key.spent_time = spent_time
+                    metric_key.request = request
                     if inspect.iscoroutinefunction(metric_key.function):
                         await metric_key.function(metric_key)
                     else:

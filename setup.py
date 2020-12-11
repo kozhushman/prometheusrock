@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='prometheusrock',
-    version='0.1.2',
+    version='0.1.3',
     author='Nikita Kozhushko (kozhushman)',
     author_email='kozhushman@gmail.com',
     packages=['prometheusrock'],

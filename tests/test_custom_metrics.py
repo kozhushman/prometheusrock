@@ -6,6 +6,7 @@ from prometheusrock import MetricsStorage, AddMetric
 
 async def function(middleware_proxy: MetricsStorage):
     res = 'custom_result'
+    assert hasattr(middleware_proxy, 'request')
     middleware_proxy.metric.labels(res)
 
 
