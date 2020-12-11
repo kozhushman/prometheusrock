@@ -128,6 +128,7 @@ And the next steps are:
    * metric - instance of `prometheus_client` metric object.
    * metric_type - string with type.
    * spent_time - time, that was spent on request. You may need it if you, for example, implementing Histogram metric.
+   * request - request object from app.
    
    And now **IMPORTANT** remark - you *must* correctly invoke metric! 
    So if you, for example, chose `Counter` metric, in your custom function you must do `middleware_proxy.metric.labels(**res).inc()`,
