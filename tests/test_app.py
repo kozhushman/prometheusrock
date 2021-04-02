@@ -108,3 +108,46 @@ class TestMiddlewareSettings:
                                                       "skip_paths": "wrong_type"
                                                   })
 
+
+class TestCustomPathsAndHeaders:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("app_without_middleware", [{
+        "app_name": "custom_app_name_labels",
+        "custom_base_labels": ['method', 'path', 'status_code'],
+        "aggregate_paths": ['/custom/'],
+    }], indirect=True)
+    async def test_aggregate_path(self, app_without_middleware):
+        async with TestClient(application=app_without_middleware) as client:
+            await client.get("/custom/1", headers={"content-type": "json"})
+            await client.get("/custom/1", headers={"content-type": "json"})
+            await client.get("/custom/1", headers={"content-type": "json"})
+            await client.get("/custom/2", headers={"content-type": "json"})
+            await client.get("/custom/2", headers={"content-type": "json"})
+            metrics = (await client.get("/metrics_route")).content.decode()
+
+            assert """requests_total{method="GET",path="/custom/",status_code="200"} 5.0""" in metrics
+            assert """requests_total{method="GET",path="/custom/1",status_code="200"} 3.0""" not in metrics
+            assert """requests_created{method="GET",path="/custom/",status_code="200"}""" in metrics
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("app_without_middleware", [{
+        "app_name": "custom_app_name_headers",
+        "custom_base_labels": ['method', 'path', 'status_code','headers'],
+        "aggregate_paths": ['/custom/'],
+        "custom_base_headers": ['X-Api-Client']
+    }], indirect=True)
+    async def test_custom_headers(self, app_without_middleware):
+        async with TestClient(application=app_without_middleware) as client:
+            await client.get("/custom/1", headers={"content-type": "json"})
+            await client.get("/custom/1", headers={"content-type": "json"})
+            metrics = (await client.get("/metrics_route")).content.decode()
+
+            assert """requests_created{headers="{}",method="GET",path="/custom/",status_code="200"}""" in metrics
+            await client.get("/custom/1", headers={"content-type": "json","x-api-client": "test"})
+            await client.get("/custom/1", headers={"content-type": "json","x-api-client": "test"})
+            metrics = (await client.get("/metrics_route")).content.decode()
+            assert """requests_total{headers="{'x-api-client': 'test'}",method="GET",path="/custom/",status_code="200"} 2.0""" in metrics
+
+
+
+

@@ -15,7 +15,7 @@ Basic labels for them:
 * method
 * path
 * status_code
-* User-Agent and Host headers 
+* `User-Agent` and `Host` headers 
 * application name
 
 Example:  
@@ -78,7 +78,18 @@ so if you initially moved your metric route to some other url - pass it here.
 If you want to log all routes (even the default `/metrics` - pass an empty list!)
 * `disable_default_counter` - if you want to disable default Counter metric - pass `True` value to this optional param.
 * `disable_default_histogram` - if you want to disable default Histogram metric - pass `True` value to this optional param.
-
+* `custom_base_labels` - if you want change default labels to yours - pass them here.
+  **REWRITES DEFAULT LABLES**. Args `remove_labels` **WILL BE IGNORED**.   
+  example - `['path','method']` - and you have metric, that contains only `path` and `method` labels.
+* `custom_base_headers` - if you want change default headers to yours - pass them here.
+  **REWRITES DEFAULT HEADERS**. Args `additional_headers` **WILL BE IGNORED**.
+  If you use `custom_base_labels`, don't forget to pass `headers` in it, 
+  otherwise `custom_base_headers` will have no effect.  
+  example - `['content-type','x-api-client']` - and now you write only these two headers.
+* `aggregate_paths` - if you have endpoints like `/item/{id}`, then, by default,
+your logs will quickly overflow, showing you huge amount of numbers, when, in fact,
+endpoint is one. So pass here list of endpoints path to aggregate by.
+example - `['/item/']`
 
 But a picture is worth a thousand words, right? Let's see some code!
 For example, we want our middleware to have a following settings:
@@ -108,7 +119,7 @@ First, we do all the same things - we initiate the app, we add PrometheusMiddlew
 And the next steps are:
 1. We must decide what type of metric we want - [choose one from here](https://github.com/prometheus/client_python). Basically, you will need pass one of the types - `info, gauge, counter, histogram, summary, enum`.
 2. We declare the function that will act like our metric logic:
-    ```python
+   ```python
    # async here isn't necessary, you can use ordinary function
     async def query(middleware_proxy):
         res = await db.execute_query(
